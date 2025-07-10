@@ -1,5 +1,6 @@
 "use client";
 import { ChatForm } from "@/components/chat-form";
+import MCPCanvas from "@/components/mcpgraph";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import { useState } from "react";
@@ -12,18 +13,12 @@ export default function Page() {
     <div style={{ height: "100vh" }}>
       <Allotment separator={true}>
         <Allotment.Pane preferredSize="50%" minSize={0} maxSize={Infinity}>
-          <div style={{ padding: "20px", height: "100%" }}>
-            <h2>Left Panel</h2>
-            <p>
-              This is the left panel content. You can resize or completely
-              collapse this panel.
-            </p>
-            {rightCollapsed && (
-              <button onClick={() => setRightCollapsed(false)}>
-                Reopen Right Panel
-              </button>
-            )}
-          </div>
+          <MCPCanvas />
+          {rightCollapsed && (
+            <button onClick={() => setRightCollapsed(false)}>
+              Reopen Right Panel
+            </button>
+          )}
         </Allotment.Pane>
         <Allotment.Pane preferredSize="50%" minSize={0} maxSize={Infinity}>
           <div style={{ padding: "20px", height: "100%" }}>
