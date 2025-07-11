@@ -34,18 +34,12 @@ export function ChatForm({
   };
 
   const header = (
-    <header className="m-auto flex max-w-96 flex-col gap-5 text-center">
+    <header className="m-auto flex max-w-96 flex-col gap-5 text-center text-slate-200">
       <h1 className="text-2xl font-semibold leading-none tracking-tight">
-        Basic AI Chatbot Template
+        Welcome to Modular
       </h1>
       <p className="text-muted-foreground text-sm">
-        This is an AI chatbot app template built with{" "}
-        <span className="text-foreground">Next.js</span>, the{" "}
-        <span className="text-foreground">Vercel AI SDK</span>, and{" "}
-        <span className="text-foreground">Vercel KV</span>.
-      </p>
-      <p className="text-muted-foreground text-sm">
-        Connect an API Key from your provider and send a message to get started.
+        Start by connecting LLMs and productivity apps of your choice.
       </p>
     </header>
   );
@@ -56,7 +50,7 @@ export function ChatForm({
         <div
           key={index}
           data-role={message.role}
-          className="max-w-[80%] rounded-xl px-3 py-2 text-sm data-[role=assistant]:self-start data-[role=user]:self-end data-[role=assistant]:bg-gray-100 data-[role=user]:bg-blue-500 data-[role=assistant]:text-black data-[role=user]:text-white"
+          className="rounded-xl px-3 py-2 text-sm data-[role=assistant]:self-start data-[role=user]:self-end data-[role=assistant]:bg-gray-100 data-[role=user]:bg-blue-500 data-[role=assistant]:text-black data-[role=user]:text-white"
         >
           {message.content}
         </div>
@@ -67,9 +61,10 @@ export function ChatForm({
   return (
     <main
       className={cn(
-        "ring-none mx-auto flex h-svh max-h-svh w-full max-w-[35rem] flex-col items-stretch border-none",
+        "ring-none mx-auto flex h-svh max-h-svh w-full flex-col items-stretch border-none",
         className
       )}
+      style={{ backgroundColor: "#353535" }}
       {...props}
     >
       <div className="flex-1 content-center overflow-y-auto px-6">

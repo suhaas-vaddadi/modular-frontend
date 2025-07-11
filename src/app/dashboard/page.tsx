@@ -13,15 +13,19 @@ export default function Page() {
     <div style={{ height: "100vh" }}>
       <Allotment separator={true}>
         <Allotment.Pane preferredSize="50%" minSize={0} maxSize={Infinity}>
-          <MCPCanvas />
-          {rightCollapsed && (
-            <button onClick={() => setRightCollapsed(false)}>
-              Reopen Right Panel
-            </button>
-          )}
+          <div style={{ paddingRight: "2px", height: "100%" }}>
+            <MCPCanvas />
+            {rightCollapsed && (
+              <button onClick={() => setRightCollapsed(false)}>
+                Reopen Right Panel
+              </button>
+            )}
+          </div>
         </Allotment.Pane>
         <Allotment.Pane preferredSize="50%" minSize={0} maxSize={Infinity}>
-          <div style={{ padding: "20px", height: "100%" }}>
+          <div
+            style={{ paddingLeft: "2px", height: "100%", marginBottom: "5%" }}
+          >
             <ChatForm />
             {leftCollapsed && (
               <button onClick={() => setLeftCollapsed(false)}>
