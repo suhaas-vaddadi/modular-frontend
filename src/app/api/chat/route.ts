@@ -19,21 +19,25 @@ function assignModel(providerName: string, modelName: string, apiKey: string) {
   }
 
   const configs: Record<string, () => ModelConfig> = {
-    gemini: () => ({
+    Google: () => ({
       provider: createGoogleGenerativeAI({ apiKey }),
       modelName: modelName,
     }),
-    claude: () => ({
+    Claude: () => ({
       provider: createAnthropic({ apiKey }),
       modelName: modelName,
     }),
-    openai: () => ({
+    OpenAI: () => ({
       provider: createOpenAI({ apiKey }),
       modelName: modelName,
     }),
   };
 
   modelConfig = configs[providerName]?.();
+
+  if (!modelConfig) {
+    throw new Error(`Unsupported provider: ${providerName}`);
+  }
 }
 
 export async function PUT(req: Request) {
@@ -41,6 +45,7 @@ export async function PUT(req: Request) {
 
   try {
     assignModel(provider, model, apiKey);
+    return Response.json({ message: "Model assigned successfully" });
   } catch (error) {
     const err = error as Error;
     return Response.json({ error: err.message }, { status: 400 });
