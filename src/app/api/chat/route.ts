@@ -54,16 +54,24 @@ export async function PUT(req: Request) {
 
 export async function POST(req: Request) {
   if (modelConfig == null) {
-    throw new Error("No API Key");
+    return new Response(JSON.stringify({ error: "No API Key configured" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  const { messages } = await req.json();
+  try {
+    const { messages } = await req.json();
 
-  const result = streamText({
-    model: modelConfig.provider(modelConfig.modelName),
-    system: "You are a helpful assistant",
-    messages: messages,
-  });
+    const result = streamText({
+      model: modelConfig.provider(modelConfig.modelName),
+      system: "You are a helpful assistant",
+      messages: messages,
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (error) {
+    const err = error as Error;
+    return Response.json({ error: err.message }, { status: 400 });
+  }
 }

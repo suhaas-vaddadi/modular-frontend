@@ -148,6 +148,7 @@ export default function MCPCanvas() {
     x: 0,
     y: 0,
   });
+  const [LLMNodeActive, setLLMNodeActive] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [models, setModels] = useState<string[]>([]);
 
@@ -355,7 +356,7 @@ export default function MCPCanvas() {
         const { error } = await res.json();
         throw new Error(error);
       }
-
+      setLLMNodeActive(true);
       setEditingLLM(false);
     } catch (error) {
       if (error instanceof Error) {
@@ -506,17 +507,29 @@ export default function MCPCanvas() {
           onMouseEnter={() => setHoveredNode("llm")}
           onMouseLeave={() => setHoveredNode(null)}
         >
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-600 to-blue-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-slate-700 relative overflow-hidden">
+          <div
+            className={`w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-600 to-blue-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-slate-700 relative overflow-hidden ${
+              LLMNodeActive ? "" : "opacity-50"
+            }`}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-full"></div>
             <div className="absolute inset-0 bg-gradient-to-tl from-blue-300/30 to-transparent rounded-full"></div>
             <Brain className="w-10 h-10 text-white relative z-10 drop-shadow-lg" />
           </div>
           <div className="text-center mt-3">
-            <div className="text-lg font-bold text-white drop-shadow-lg">
+            <div
+              className={`text-lg font-bold text-white drop-shadow-lg ${
+                LLMNodeActive ? "" : "opacity-50"
+              }`}
+            >
               {llmNode.label}
             </div>
-            <div className="text-sm text-slate-300">
-              {llmNode.currentProvider}
+            <div
+              className={`text-sm text-slate-300 ${
+                LLMNodeActive ? "" : "opacity-50"
+              }`}
+            >
+              {LLMNodeActive ? `${llmNode.currentProvider}` : "Select LLM"}
             </div>
           </div>
         </div>
