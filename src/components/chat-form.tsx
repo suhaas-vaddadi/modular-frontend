@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-
+import { useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { ArrowUpIcon } from "lucide-react";
+import { ArrowUpIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,14 +16,47 @@ export function ChatForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const { messages, input, setInput, append } = useChat({
+  const [showError, setShowError] = useState(false);
+
+  const { messages, input, setInput, append, setMessages } = useChat({
     api: "/api/chat",
+    onError: (error) => {
+      console.error("Chat error:", error);
+      setShowError(true);
+
+      // Add error message to chat
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content:
+            "Error while chatting. Please check your API key/config and try again.",
+        },
+      ]);
+    },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    void append({ content: input, role: "user" });
-    setInput("");
+    try {
+      e.preventDefault();
+      void append({ content: input, role: "user" });
+      setInput("");
+    } catch (error) {
+      console.error("Submit error:", error);
+      setShowError(true);
+
+      // Add error message to chat
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content:
+            "Error while chatting. Please check your API key/config and try again.",
+        },
+      ]);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -55,6 +88,25 @@ export function ChatForm({
           {message.content}
         </div>
       ))}
+    </div>
+  );
+
+  const errorModal = (
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom duration-300">
+      <div className="bg-red-500 text-white rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 max-w-md">
+        <div className="flex-1">
+          <p className="text-sm font-medium">Error while chatting</p>
+          <p className="text-xs opacity-90">Check API key/config</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowError(false)}
+          className="h-6 w-6 p-0 hover:bg-red-600 text-white"
+        >
+          <X size={14} />
+        </Button>
+      </div>
     </div>
   );
 
@@ -94,6 +146,8 @@ export function ChatForm({
           <TooltipContent sideOffset={12}>Submit</TooltipContent>
         </Tooltip>
       </form>
+
+      {showError && errorModal}
     </main>
   );
 }
