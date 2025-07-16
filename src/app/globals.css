@@ -120,3 +120,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+html {
+  background-color: #353535;
+  overscroll-behavior: none;
+}
