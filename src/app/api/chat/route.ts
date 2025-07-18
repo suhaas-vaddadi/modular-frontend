@@ -1,10 +1,11 @@
-import { streamText } from "ai";
+import { experimental_createMCPClient, streamText } from "ai";
 import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider,
 } from "@ai-sdk/google";
 import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
 import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
+import { Experimental_StdioMCPTransport } from "ai/mcp-stdio";
 
 interface ModelConfig {
   provider: OpenAIProvider | AnthropicProvider | GoogleGenerativeAIProvider;
@@ -12,6 +13,16 @@ interface ModelConfig {
 }
 
 let modelConfig: ModelConfig | null = null;
+
+const transport = new Experimental_StdioMCPTransport({
+  command: "npx",
+  args: ["-y", "@h1deya/mcp-server-weather"],
+});
+const stdioClient = await experimental_createMCPClient({
+  transport,
+});
+
+const tools = await stdioClient.tools();
 
 function assignModel(providerName: string, modelName: string, apiKey: string) {
   if (!apiKey.match(/^[A-Za-z0-9_-]+$/)) {
@@ -67,8 +78,10 @@ export async function POST(req: Request) {
       model: modelConfig.provider(modelConfig.modelName),
       system: "You are a helpful assistant",
       messages: messages,
+      tools: tools,
+      maxSteps: 3,
     });
-
+    console.log(result);
     return result.toDataStreamResponse();
   } catch (error) {
     const err = error as Error;
