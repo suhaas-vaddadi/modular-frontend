@@ -329,13 +329,17 @@ export default function MCPCanvas() {
 
   const handleLLMProviderChange = (newProvider: string) => {
     setLlmNode((prev) => ({ ...prev, currentProvider: newProvider }));
-    setModels(llmNode.availableModels[newProvider]);
+    const newModels = llmNode.availableModels[newProvider];
+    setModels(newModels);
+    if (newModels && newModels.length > 0) {
+      setSelectedModel(newModels[0]);
+    }
   };
 
   const handleLLMChange = async () => {
     setEditingLLM(false);
 
-    if (!llmNode.currentProvider || !selectedModel || !LLMApiKey) {
+    if (!selectedModel || !LLMApiKey) {
       return;
     }
 
@@ -769,46 +773,6 @@ export default function MCPCanvas() {
                       setLLMApiKey(e.target.value);
                     }}
                   />
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-600"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="px-2 bg-slate-800 text-slate-400">
-                        or
-                      </span>
-                    </div>
-                  </div>
-                  <label className="w-full cursor-pointer">
-                    <input
-                      type="file"
-                      accept=".json,.txt"
-                      className="hidden"
-                      onChange={(e) => {
-                        // Handle file upload
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          console.log("File selected:", file.name);
-                        }
-                      }}
-                    />
-                    <div className="w-full px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors border border-slate-600 border-dashed text-center">
-                      <svg
-                        className="w-5 h-5 mx-auto mb-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      Upload API Key File (.json, .txt)
-                    </div>
-                  </label>
                 </div>
               </div>
 
