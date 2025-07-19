@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       model: modelConfig.provider(modelConfig.modelName),
       system: "You are a helpful assistant",
       messages: messages,
-      tools: fetchTools(),
+      tools: await fetchTools(),
       maxSteps: 3,
     });
     console.log(result);
