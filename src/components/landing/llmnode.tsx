@@ -1,3 +1,4 @@
+"use client";
 import { Brain, Calendar, CheckSquare, FileText, Mail } from "lucide-react";
 import React, { useState, useEffect } from "react";
 

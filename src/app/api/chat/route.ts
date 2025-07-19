@@ -1,28 +1,24 @@
-import { experimental_createMCPClient, streamText } from "ai";
+import { streamText } from "ai";
 import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider,
 } from "@ai-sdk/google";
 import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
 import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
-import { Experimental_StdioMCPTransport } from "ai/mcp-stdio";
+import type { Tool } from "ai";
 
 interface ModelConfig {
   provider: OpenAIProvider | AnthropicProvider | GoogleGenerativeAIProvider;
   modelName: string;
 }
 
+let tools: Record<string, Tool> = {};
+
+export function addTools(newTools: Record<string, Tool>) {
+  tools = { ...tools, ...newTools };
+}
+
 let modelConfig: ModelConfig | null = null;
-
-const transport = new Experimental_StdioMCPTransport({
-  command: "npx",
-  args: ["-y", "@h1deya/mcp-server-weather"],
-});
-const stdioClient = await experimental_createMCPClient({
-  transport,
-});
-
-const tools = await stdioClient.tools();
 
 function assignModel(providerName: string, modelName: string, apiKey: string) {
   if (!apiKey.match(/^[A-Za-z0-9_-]+$/)) {
