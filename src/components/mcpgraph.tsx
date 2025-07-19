@@ -33,6 +33,7 @@ interface LLMNode {
   label: string;
   currentProvider: string;
   availableProviders: string[];
+  availableModels: { [provider: string]: string[] };
   position: Position;
 }
 
@@ -114,6 +115,17 @@ const INITIAL_LLM: LLMNode = {
   label: "LLM Core",
   currentProvider: "Claude Sonnet 4",
   availableProviders: ["Google", "OpenAI", "Claude"],
+  availableModels: {
+    Google: [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+      "gemini-1.5.pro",
+    ],
+    OpenAI: ["o4-mini", "o3", "o3-mini", "o3-pro", "GPT-4o"],
+    Claude: ["claude-3-haiku", "claude-3-sonnet", "claude-3-opus"],
+  },
   position: { x: 350, y: 225 },
 };
 
@@ -136,6 +148,9 @@ export default function MCPCanvas() {
     x: 0,
     y: 0,
   });
+  const [LLMNodeActive, setLLMNodeActive] = useState<boolean>(false);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [models, setModels] = useState<string[]>([]);
 
   const [LLMApiKey, setLLMApiKey] = useState<string>("");
   const [panStartOffset, setPanStartOffset] = useState<Position>({
@@ -314,11 +329,42 @@ export default function MCPCanvas() {
 
   const handleLLMProviderChange = (newProvider: string) => {
     setLlmNode((prev) => ({ ...prev, currentProvider: newProvider }));
+    setModels(llmNode.availableModels[newProvider]);
   };
 
-  const handleLLMChange = () => {
+  const handleLLMChange = async () => {
     setEditingLLM(false);
-    console.log(LLMApiKey);
+
+    if (!llmNode.currentProvider || !selectedModel || !LLMApiKey) {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: llmNode.currentProvider,
+          model: selectedModel,
+          apiKey: LLMApiKey,
+        }),
+      });
+
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error);
+      }
+      setLLMNodeActive(true);
+      setEditingLLM(false);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Failed to save changes: ${error.message}`);
+      } else {
+        alert("An unknown error occurred.");
+      }
+    }
   };
 
   const getConnectionPath = useCallback((from: Position, to: Position) => {
@@ -461,17 +507,29 @@ export default function MCPCanvas() {
           onMouseEnter={() => setHoveredNode("llm")}
           onMouseLeave={() => setHoveredNode(null)}
         >
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-600 to-blue-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-slate-700 relative overflow-hidden">
+          <div
+            className={`w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-600 to-blue-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-slate-700 relative overflow-hidden ${
+              LLMNodeActive ? "" : "opacity-50"
+            }`}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-full"></div>
             <div className="absolute inset-0 bg-gradient-to-tl from-blue-300/30 to-transparent rounded-full"></div>
             <Brain className="w-10 h-10 text-white relative z-10 drop-shadow-lg" />
           </div>
           <div className="text-center mt-3">
-            <div className="text-lg font-bold text-white drop-shadow-lg">
+            <div
+              className={`text-lg font-bold text-white drop-shadow-lg ${
+                LLMNodeActive ? "" : "opacity-50"
+              }`}
+            >
               {llmNode.label}
             </div>
-            <div className="text-sm text-slate-300">
-              {llmNode.currentProvider}
+            <div
+              className={`text-sm text-slate-300 ${
+                LLMNodeActive ? "" : "opacity-50"
+              }`}
+            >
+              {LLMNodeActive ? `${llmNode.currentProvider}` : "Select LLM"}
             </div>
           </div>
         </div>
@@ -665,6 +723,7 @@ export default function MCPCanvas() {
                 <label className="block text-sm font-medium text-slate-300 mb-3">
                   LLM Provider
                 </label>
+
                 <div className="grid grid-cols-2 gap-2">
                   {llmNode.availableProviders.map((provider) => (
                     <button
@@ -681,6 +740,21 @@ export default function MCPCanvas() {
                   ))}
                 </div>
               </div>
+
+              <label className="block text-sm font-medium text-slate-300 mb-3">
+                Model
+              </label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {models.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-3">

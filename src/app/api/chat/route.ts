@@ -1,4 +1,4 @@
-import { streamText, Tool } from "ai";
+import { streamText, type Tool } from "ai";
 import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider,
