@@ -25,21 +25,25 @@ function assignModel(providerName: string, modelName: string, apiKey: string) {
   }
 
   const configs: Record<string, () => ModelConfig> = {
-    gemini: () => ({
+    Google: () => ({
       provider: createGoogleGenerativeAI({ apiKey }),
       modelName: modelName,
     }),
-    claude: () => ({
+    Claude: () => ({
       provider: createAnthropic({ apiKey }),
       modelName: modelName,
     }),
-    openai: () => ({
+    OpenAI: () => ({
       provider: createOpenAI({ apiKey }),
       modelName: modelName,
     }),
   };
 
   modelConfig = configs[providerName]?.();
+
+  if (!modelConfig) {
+    throw new Error(`Unsupported provider: ${providerName}`);
+  }
 }
 
 export async function PUT(req: Request) {
@@ -47,6 +51,7 @@ export async function PUT(req: Request) {
 
   try {
     assignModel(provider, model, apiKey);
+    return Response.json({ message: "Model assigned successfully" });
   } catch (error) {
     const err = error as Error;
     return Response.json({ error: err.message }, { status: 400 });
@@ -55,16 +60,26 @@ export async function PUT(req: Request) {
 
 export async function POST(req: Request) {
   if (modelConfig == null) {
-    throw new Error("No API Key");
+    return new Response(JSON.stringify({ error: "No API Key configured" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  const { messages } = await req.json();
+  try {
+    const { messages } = await req.json();
 
-  const result = streamText({
-    model: modelConfig.provider(modelConfig.modelName),
-    system: "You are a helpful assistant",
-    messages: messages,
-  });
-
-  return result.toDataStreamResponse();
+    const result = streamText({
+      model: modelConfig.provider(modelConfig.modelName),
+      system: "You are a helpful assistant",
+      messages: messages,
+      tools: tools,
+      maxSteps: 3,
+    });
+    console.log(result);
+    return result.toDataStreamResponse();
+  } catch (error) {
+    const err = error as Error;
+    return Response.json({ error: err.message }, { status: 400 });
+  }
 }
