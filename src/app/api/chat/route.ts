@@ -1,11 +1,10 @@
-import { streamText } from "ai";
 import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider,
 } from "@ai-sdk/google";
 import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
 import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
-import type { Tool } from "ai";
+import { streamText, type Tool } from "ai";
 
 interface ModelConfig {
   provider: OpenAIProvider | AnthropicProvider | GoogleGenerativeAIProvider;
@@ -14,8 +13,8 @@ interface ModelConfig {
 
 let tools: Record<string, Tool> = {};
 
-export function addTools(newTools: Record<string, Tool>) {
-  tools = { ...tools, ...newTools };
+export function addTools(addedTools: Record<string, Tool>) {
+  tools = { ...tools, ...addedTools };
 }
 
 let modelConfig: ModelConfig | null = null;
