@@ -1,6 +1,6 @@
 import { experimental_createMCPClient } from "ai";
 import { Experimental_StdioMCPTransport } from "ai/mcp-stdio";
-import { addTools } from "../../chat/route";
+import { addTools } from "../../tools";
 
 export async function PUT(req: Request) {
   const { client_id, client_secret, refresh_token } = await req.json();

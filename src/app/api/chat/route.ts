@@ -4,18 +4,13 @@ import {
 } from "@ai-sdk/google";
 import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
 import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
-import { streamText, type Tool } from "ai";
+import { streamText } from "ai";
+import { fetchTools } from "../tools";
 
 interface ModelConfig {
   provider: OpenAIProvider | AnthropicProvider | GoogleGenerativeAIProvider;
   modelName: string;
 }
-
-let tools: Record<string, Tool> = {};
-
-export const addTools = (addedTools: Record<string, Tool>) => {
-  tools = { ...tools, ...addedTools };
-};
 
 let modelConfig: ModelConfig | null = null;
 
@@ -73,7 +68,7 @@ export async function POST(req: Request) {
       model: modelConfig.provider(modelConfig.modelName),
       system: "You are a helpful assistant",
       messages: messages,
-      tools: tools,
+      tools: fetchTools(),
       maxSteps: 3,
     });
     console.log(result);
