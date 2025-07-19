@@ -13,9 +13,9 @@ interface ModelConfig {
 
 let tools: Record<string, Tool> = {};
 
-export function addTools(addedTools: Record<string, Tool>) {
+export const addTools = (addedTools: Record<string, Tool>) => {
   tools = { ...tools, ...addedTools };
-}
+};
 
 let modelConfig: ModelConfig | null = null;
 
