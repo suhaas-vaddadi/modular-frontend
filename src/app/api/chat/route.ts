@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { streamText, Tool } from "ai";
 import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider,
@@ -9,6 +9,12 @@ import { AnthropicProvider, createAnthropic } from "@ai-sdk/anthropic";
 interface ModelConfig {
   provider: OpenAIProvider | AnthropicProvider | GoogleGenerativeAIProvider;
   modelName: string;
+}
+
+let tools: Record<string, Tool> = {};
+
+export function addTools(addedTools: Record<string, Tool>) {
+  tools = { ...tools, ...addedTools };
 }
 
 let modelConfig: ModelConfig | null = null;
