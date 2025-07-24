@@ -114,8 +114,6 @@ export default function MCPCanvas() {
     y: 0,
   });
 
-  const [email, setEmail] = useState<string>();
-
   const [LLMNodeActive, setLLMNodeActive] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [models, setModels] = useState<string[]>([]);
@@ -325,9 +323,6 @@ export default function MCPCanvas() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: email,
-        }),
       });
       if (!res.ok) {
         alert(
@@ -628,13 +623,6 @@ export default function MCPCanvas() {
                 <label className="block text-sm font-medium text-slate-300 mb-3">
                   Gmail Account
                 </label>
-                <input
-                  placeholder="xyz@gmail.com"
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
-                />
               </div>
 
               <div className="space-y-3">
