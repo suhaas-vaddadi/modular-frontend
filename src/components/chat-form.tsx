@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AutoResizeTextarea } from "./autoresize-textarea";
+import ReactMarkdown from "react-markdown";
 
 export function ChatForm({
   className,
@@ -85,7 +86,23 @@ export function ChatForm({
           data-role={message.role}
           className="rounded-xl px-3 py-2 text-sm data-[role=assistant]:self-start data-[role=user]:self-end data-[role=assistant]:bg-gray-100 data-[role=user]:bg-blue-500 data-[role=assistant]:text-black data-[role=user]:text-white"
         >
-          {message.content}
+          {message.role === "assistant" ? (
+            <ReactMarkdown
+              components={{
+                strong: ({ children }) => (
+                  <strong className="font-bold">{children}</strong>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside ml-4">{children}</ul>
+                ),
+                li: ({ children }) => <li>{children}</li>,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          ) : (
+            message.content
+          )}
         </div>
       ))}
     </div>

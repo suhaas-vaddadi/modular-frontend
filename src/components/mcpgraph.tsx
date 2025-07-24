@@ -3,13 +3,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Settings,
-  Trash2,
   Calendar,
   FileText,
   CheckSquare,
   Mail,
   Brain,
-  CheckCircle2,
 } from "lucide-react";
 
 interface Position {
@@ -23,8 +21,6 @@ interface ServiceNode {
   icon: React.ReactNode;
   position: Position;
   connected: boolean;
-  currentProvider: string;
-  availableProviders: string[];
   color: string;
 }
 
@@ -51,13 +47,6 @@ const INITIAL_SERVICES: ServiceNode[] = [
     icon: <Calendar className="w-5 h-5" />,
     position: { x: 200, y: 100 },
     connected: false,
-    currentProvider: "Google Calendar",
-    availableProviders: [
-      "Google Calendar",
-      "Apple Calendar",
-      "Outlook Calendar",
-      "CalDAV",
-    ],
     color: "#fb923c",
   },
   {
@@ -66,14 +55,6 @@ const INITIAL_SERVICES: ServiceNode[] = [
     icon: <FileText className="w-5 h-5" />,
     position: { x: 500, y: 150 },
     connected: false,
-    currentProvider: "Google Notes",
-    availableProviders: [
-      "Google Notes",
-      "Apple Notes",
-      "Notion",
-      "Obsidian",
-      "Evernote",
-    ],
     color: "#f87171",
   },
   {
@@ -82,31 +63,15 @@ const INITIAL_SERVICES: ServiceNode[] = [
     icon: <CheckSquare className="w-5 h-5" />,
     position: { x: 450, y: 350 },
     connected: false,
-    currentProvider: "Todoist",
-    availableProviders: [
-      "Todoist",
-      "Apple Reminders",
-      "Microsoft To Do",
-      "Any.do",
-      "TickTick",
-    ],
     color: "#fbbf24",
   },
   {
-    id: "email",
-    label: "Email",
+    id: "google",
+    label: "Google",
     icon: <Mail className="w-5 h-5" />,
     position: { x: 150, y: 300 },
     connected: false,
-    currentProvider: "Gmail",
-    availableProviders: [
-      "Gmail",
-      "Outlook",
-      "Apple Mail",
-      "Yahoo Mail",
-      "ProtonMail",
-    ],
-    color: "#60a5fa",
+    color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   },
 ];
 
@@ -148,6 +113,9 @@ export default function MCPCanvas() {
     x: 0,
     y: 0,
   });
+
+  const [email, setEmail] = useState<string>();
+
   const [LLMNodeActive, setLLMNodeActive] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [models, setModels] = useState<string[]>([]);
@@ -283,7 +251,7 @@ export default function MCPCanvas() {
     setActiveNode(activeNode === nodeId ? null : nodeId);
   };
 
-  const handleEdit = (nodeId: string) => {
+  const handleEdit = async (nodeId: string) => {
     const node = services.find((s) => s.id === nodeId);
     if (node) {
       setEditingNode(node);
@@ -294,37 +262,6 @@ export default function MCPCanvas() {
   const handleEditLLM = () => {
     setEditingLLM(true);
     setActiveNode(null);
-  };
-
-  const handleDelete = (nodeId: string) => {
-    setServices((prev) =>
-      prev.map((service) =>
-        service.id === nodeId ? { ...service, connected: false } : service
-      )
-    );
-    setActiveNode(null);
-  };
-
-  const handleConnect = (nodeId: string) => {
-    setServices((prev) =>
-      prev.map((service) =>
-        service.id === nodeId ? { ...service, connected: true } : service
-      )
-    );
-    setActiveNode(null);
-  };
-
-  const handleProviderChange = (newProvider: string) => {
-    if (!editingNode) return;
-
-    setServices((prev) =>
-      prev.map((service) =>
-        service.id === editingNode.id
-          ? { ...service, currentProvider: newProvider }
-          : service
-      )
-    );
-    setEditingNode(null);
   };
 
   const handleLLMProviderChange = (newProvider: string) => {
@@ -380,6 +317,28 @@ export default function MCPCanvas() {
       from.y + dy / 2
     } ${to.x} ${to.y}`;
   }, []);
+
+  async function handleNodeSubmit(editingNode: ServiceNode): Promise<void> {
+    if (editingNode.label == "Google") {
+      const res = await fetch("/api/mcp-servers/calendar", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+        }),
+      });
+      if (!res.ok) {
+        alert(
+          "Error in setting up Gsuite connection. Check client credentials"
+        );
+      } else {
+        editingNode.connected = true;
+        setEditingNode(null);
+      }
+    }
+  }
 
   return (
     <div
@@ -582,7 +541,7 @@ export default function MCPCanvas() {
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                handleNodeClick(service.id);
+                setEditingNode(service);
               }}
               onMouseEnter={() => setHoveredNode(service.id)}
               onMouseLeave={() => setHoveredNode(null)}
@@ -596,7 +555,7 @@ export default function MCPCanvas() {
                   hoveredNode === service.id ? "shadow-2xl border-blue-400" : ""
                 }`}
                 style={{
-                  backgroundColor: service.color,
+                  background: service.color,
                   boxShadow: service.connected
                     ? hoveredNode === service.id
                       ? `0 0 30px ${service.color}40, 0 20px 40px rgba(0,0,0,0.4)`
@@ -626,13 +585,6 @@ export default function MCPCanvas() {
                 >
                   {service.label}
                 </div>
-                <div
-                  className={`text-xs ${
-                    service.connected ? "text-slate-300" : "text-slate-500"
-                  }`}
-                >
-                  {service.currentProvider}
-                </div>
               </div>
             </div>
 
@@ -654,24 +606,6 @@ export default function MCPCanvas() {
                 >
                   <Settings className="w-3 h-3 text-slate-200" />
                 </button>
-                <button
-                  className="w-8 h-8 bg-slate-800 border border-slate-600 rounded-md shadow-xl hover:bg-slate-700 hover:border-slate-500 transition-all duration-200 flex items-center justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (service.connected) {
-                      handleDelete(service.id);
-                    } else {
-                      handleConnect(service.id);
-                    }
-                  }}
-                >
-                  {service.connected && (
-                    <Trash2 className="w-3 h-3 text-red-400" />
-                  )}
-                  {!service.connected && (
-                    <CheckCircle2 className="w-3 h-3 text-green-400" />
-                  )}
-                </button>
               </div>
             )}
           </div>
@@ -683,24 +617,30 @@ export default function MCPCanvas() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 max-w-md w-full mx-4">
             <h2 className="text-xl font-bold text-white mb-4">
-              Edit {editingNode.label} Service
+              Configure {editingNode.label} Service
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Service Provider
+                <label className="block text-sm font-medium text-slate-300 mb-2"></label>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  Gmail Account
                 </label>
-                <select
-                  value={editingNode.currentProvider}
-                  onChange={(e) => handleProviderChange(e.target.value)}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {editingNode.availableProviders.map((provider) => (
-                    <option key={provider} value={provider}>
-                      {provider}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  placeholder="xyz@gmail.com"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  You will have to verify access to GSuite services later
+                </label>
               </div>
               <div className="flex justify-end gap-2">
                 <button
@@ -708,6 +648,12 @@ export default function MCPCanvas() {
                   className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={() => handleNodeSubmit(editingNode)}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20"
+                >
+                  Submit
                 </button>
               </div>
             </div>
