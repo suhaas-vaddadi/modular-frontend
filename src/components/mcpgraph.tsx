@@ -113,6 +113,8 @@ export default function MCPCanvas() {
     x: 0,
     y: 0,
   });
+  const [userClientId, setUserClientId] = useState<string>();
+  const [userClientSecret, setUserClientSecret] = useState<string>();
 
   const [LLMNodeActive, setLLMNodeActive] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -323,6 +325,10 @@ export default function MCPCanvas() {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          client_id: userClientId,
+          client_secret: userClientSecret,
+        }),
       });
       if (!res.ok) {
         alert(
@@ -619,17 +625,45 @@ export default function MCPCanvas() {
                 <label className="block text-sm font-medium text-slate-300 mb-2"></label>
               </div>
 
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  Gmail Account
-                </label>
-              </div>
+              {editingNode.label == "Google" && (
+                <div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-3">
+                      Gsuite Client Id
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        placeholder="Paste your client id here..."
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                        onChange={(e) => {
+                          setUserClientId(e.target.value);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-3">
+                      Gsuite Client Secret
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        type="password"
+                        placeholder="Paste your client secret key here..."
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                        onChange={(e) => {
+                          setUserClientSecret(e.target.value);
+                        }}
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  You will have to verify access to GSuite services later
-                </label>
-              </div>
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-slate-300 mb-3">
+                      You will have to verify access to GSuite services later
+                    </label>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setEditingNode(null)}

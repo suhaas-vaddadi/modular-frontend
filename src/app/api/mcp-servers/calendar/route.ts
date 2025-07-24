@@ -2,12 +2,17 @@ import { experimental_createMCPClient } from "ai";
 import { Experimental_StdioMCPTransport } from "ai/mcp-stdio";
 import { addTools } from "../../tools";
 
-export async function PUT() {
+export async function PUT(req: Request) {
+  const { client_id, client_secret } = await req.json();
+
   try {
     const transport = new Experimental_StdioMCPTransport({
       command: "uvx",
       args: ["workspace-mcp", "--tools", "gmail", "calendar", "drive"],
-      env: {},
+      env: {
+        GOOGLE_OAUTH_CLIENT_ID: client_id,
+        GOOGLE_OAUTH_CLIENT_SECRET: client_secret,
+      },
     });
 
     const stdioClient = await experimental_createMCPClient({
